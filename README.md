@@ -1,12 +1,10 @@
 # API development using JWT token for authentication in Node.js
 
-To get started, we’ll need to set up our project.
+Confidentiality and integrity of information go hand in hand. It needs to handle with proper access management mechanism. Access management is an important issue and if not handled properly you might lose all your resources to the attacker. Handling authentication is one of the trickiest jobs for a developer.
 
+In this article, we will be looking at how to handle authentication with Nodejs using JSON Web Token (JWT) by creating a restful APIs for our application
 
-Step 1 - Create files and directories
+# Pre-requisites
 
-```php
-  mkdir model middleware config
+Install Nodejs and npm on your workstation
 
-  touch config/database.js middleware/auth.js model/user.js
-```
