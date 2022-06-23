@@ -13,7 +13,7 @@
   "author": "Baun",
   "repository": {
     "type": "git",
-    "url": "https://github.com/achmadbaund/express-login-register-api"
+    "url": "https://github.com/achmadbaund/login-register-api-express"
   },
   "license": "MIT",
   "dependencies": {
