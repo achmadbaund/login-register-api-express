@@ -25,8 +25,19 @@ Topics:
 
 We are creating a blog application where the user can signup, signup, post a blog, comment on the post, with a complete authentication system. We will also be deploying our application on Heroku.
 
-<b>Setting Up MongoDB database on MySQL</b>
+<b>Setting Up database on MySQL</b>
 
     SignUp/Login
     Create a new database
+    
+<b>Let’s Install the latest version of packages needed to develop our application</b>
 
+```php
+npm install express
+```
+
+<b>Express Js</b>
+
+Express.js is a minimal and flexible Nodejs framework which provides lots . of features to develop web and mobile applications. It's easy to create an API with HTTP utility and middlewares with Express.js
+
+Here’s how our package.json will look like:
