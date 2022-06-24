@@ -10,7 +10,7 @@ async function isAuthenticated(req, res, next) {
         token = token.split(" ")[1];
         const user = jwt.verify(token, process.env.JWT_SECRET);
 
-        var decoded = jwt.decode(token, { complete: true });
+        let decoded = jwt.decode(token, { complete: true });
 
         req.expiredAt = new Date(decoded.payload.exp * 1000)
         req.username = user.username
