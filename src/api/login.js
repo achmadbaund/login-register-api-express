@@ -11,9 +11,9 @@ router.post("/login", async (req, res) => {
         const { username, password } = req.body;
 
         // Validate if user exist in our database
-        const user = await User.findOne({ where: { username } });
+        const user = await User.findOne({ 'username': username });
 
-        if (user && user.password == password) {
+        if (user && user.password === password) {
 
             // Create token
             const jwtToken = jwt.sign(
@@ -25,19 +25,13 @@ router.post("/login", async (req, res) => {
             );
 
             // save user token
-            user.update({
-                token : jwtToken
-            }, {
-                where : {
-                    id: user.id /*like this*/  }}).then(function (data) {
-                if (data) {
-                    res.send(data)
-                } else {
-                    res.status(400).send('Error')
-                }
-            })
+            data = User.findOne({id: user.id})
+            user.update({token : jwtToken},
+                (err,user)=>{
+                    res.status(400).send('Error');
+                });
 
-            // user
+            // output
             res.status(201).json({ id: user.id, username: user.username, token: user.token});
         }
         res.status(400).send("Invalid Credentials");

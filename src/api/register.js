@@ -10,13 +10,7 @@ router.post("/register", async (req, res) => {
         const {username, role} = req.body;
 
         // Validate if user exist in our database
-        const oldUser = await User.findOne(
-            {
-                $or: [
-                        {'role': role},
-                        {'username': username}
-                    ]
-            });
+        const oldUser = await User.findOne({$or: [{'role': role}, {'username': username}]});
 
         if (oldUser) {
           return res.status(409).send("User Already Exist. Please Login");

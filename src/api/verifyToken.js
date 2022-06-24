@@ -5,7 +5,8 @@ const router = express.Router();
 
 
 router.get("/verify-token", isAuthenticated, (req, res) => {
-    res.json({ is_valid: true, username: req.username });
+
+    res.json({ is_valid: true, username: req.username, expiredAt: req.expiredAt });
 });
 
 

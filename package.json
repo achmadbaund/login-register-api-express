@@ -1,5 +1,5 @@
 {
-  "name": "express-login-register-api",
+  "name": "login-register-api",
   "version": "1.0",
   "description": " A authentication API Node JS",
   "main": "index.js",
@@ -13,7 +13,7 @@
   "author": "Baun",
   "repository": {
     "type": "git",
-    "url": "https://github.com/achmadbaund/express-login-register-api"
+    "url": "https://github.com/achmadbaund/login-register-api-express"
   },
   "license": "MIT",
   "dependencies": {
@@ -23,6 +23,7 @@
     "express": "^4.17.1",
     "helmet": "^4.2.0",
     "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.4.0",
     "morgan": "^1.10.0",
     "mysql2": "^2.2.5",
     "passport": "^0.4.1",
