@@ -88,9 +88,10 @@ Here’s how our package.json will look like:
 As you see, in scripts, kindly add dev and start to the scripts
 
 Create an index.js file into the root of our project folder “login-register-api-express”:
-
+```php
 mkdir src
 touch src/index.js
+
 
 Set up the express server with below code
 
