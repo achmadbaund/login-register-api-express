@@ -41,3 +41,64 @@ npm install express
 Express.js is a minimal and flexible Nodejs framework which provides lots . of features to develop web and mobile applications. It's easy to create an API with HTTP utility and middlewares with Express.js
 
 Here’s how our package.json will look like:
+
+```php
+{
+  "name": "login-register-api",
+  "version": "1.0",
+  "description": " A authentication API Node JS",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "lint": "eslint --fix src",
+    "test": "mocha --exit"
+  },
+  "keywords": [],
+  "author": "Baun",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/achmadbaund/login-register-api-express"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "helmet": "^4.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "morgan": "^1.10.0",
+    "mysql2": "^2.2.5",
+    "passport": "^0.4.1",
+    "passport-jwt": "^4.0.0",
+    "sequelize": "^6.3.5"
+  },
+  "devDependencies": {
+    "eslint": "^7.14.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "mocha": "^8.2.1",
+    "nodemon": "^2.0.6",
+    "supertest": "^6.0.1"
+  }
+}
+```
+
+As you see, in scripts, kindly add dev and start to the scripts
+
+Create an index.js file into the root of our project folder “login-register-api-express”:
+
+mkdir src
+touch src/index.js
+
+Set up the express server with below code
+
+```php
+const app = require("./app");
+
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+    console.log(`apps running in port :${port}`);
+});
+```
