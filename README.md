@@ -23,7 +23,7 @@ Topics:
     
 <b>Brief about the application:</b>
 
-We are creating a blog application where the user can signup, signup, post a blog, comment on the post, with a complete authentication system. We will also be deploying our application on Heroku.
+We are creating a endpoint where can register, login, verify token. We will also be deploying our application on Heroku.
 
 <b>Setting Up database on MySQL</b>
 
