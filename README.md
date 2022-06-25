@@ -10,6 +10,10 @@ Install Nodejs and npm on your workstation
 
 We will be developing Restful APIs, authenticating the users of our app with JSON web tokens (JWT).
 
+**Login-Register with Passport JWT AUTH - API test Postman**
+
+    https://documenter.getpostman.com/view/6699260/UzBsGPf6
+
 Stack
 
     Node.js
