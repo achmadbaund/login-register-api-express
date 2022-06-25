@@ -13,32 +13,35 @@ We will be developing Restful APIs, authenticating the users of our app with JSO
 Stack
 
     Node.js
-    MySQL
+    MongoDB
 
 Topics:
 
-    Creating a database for our application — We will be using MySQL
-    Rest APIs
+    Creating a database for our application — We will be using MongoDB atlas
+    Rest APIs and Mongoose
     JWT Authentication
     
 **Brief about the application:**
 
 We are creating a endpoint where can register, login, and verify token. We will also be deploying our application on Heroku.
 
-**Setting Up database on MySQL**
+**Setting Up MongoDB database on MongoDB Atlas**
 
     SignUp/Login
     Create a new database
-    
+
+
 **Let’s Install the latest version of packages needed to develop our application**
 
-```php
-npm install
-```
+    npm install express mongodb mongoose jsonwebtoken
 
 **Express Js**
 
 Express.js is a minimal and flexible Nodejs framework which provides lots . of features to develop web and mobile applications. It's easy to create an API with HTTP utility and middlewares with Express.js
+
+**MongoDB**
+
+MongoDB Node.js driver provides callback-based and Promise-based interaction with MongoDB. We will especially use to achieve specific goals with this as we will see further in this tutorial
 
 Here’s how our package.json will look like:
 
@@ -68,6 +71,8 @@ Here’s how our package.json will look like:
     "express": "^4.17.1",
     "helmet": "^4.2.0",
     "jsonwebtoken": "^8.5.1",
+    "mongodb": "^4.7.0",
+    "mongoose": "^6.4.0",
     "morgan": "^1.10.0",
     "mysql2": "^2.2.5",
     "passport": "^0.4.1",
@@ -83,107 +88,175 @@ Here’s how our package.json will look like:
     "supertest": "^6.0.1"
   }
 }
+
 ```
 
 As you see, in scripts, kindly add dev and start to the scripts.
 
 Creating our database/index.js and .env file in sub directory ``` src ``` which will handle the connectivity to the sql database
 
-```php
-mkdir src
-mkdir src/database
-touch src/database/index.js .env
-```
+    mkdir src
+    mkdir src/database
+    touch src/database/index.js src/app.js .env
 
 Connect your DB with below code
 
 database/index.js
 ```php
-const {Sequelize} = require("sequelize");
+const mongoose = require('mongoose');
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASS,
-  {
-    host: "127.0.0.1",
-    dialect: "mysql",
-  }
-);
-
-sequelize.sync();
-
-(async () => {
-  try {
-    await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
-  } catch (error) {
-    console.error("Unable to connect to the database:", error);
-  }
-})();
-
-module.exports = sequelize;
-
-.env 
-
-NODE_ENV=development
-DB_NAME=
-DB_USER=
-DB_PASS=
-JWT_SECRET=yoursecretcode
+mongoose
+    .connect(process.env.MONGO_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+    .then(() => console.log("Database connected!"))
+    .catch(err => console.log(err));
 ```
+**useNewUrlParser**: This will parse the MongoDB connection string
 
+**useCreateIndex**: Mongoose will create the index on the DB and collections
+
+**.env**
+```php
+MONGO_URI='mongodb+srv://baun:g7h8j91Q@cluster0.uk7pm1e.mongodb.net/nodeauth?retryWrites=true&w=majority'
+JWT_SECRET=secret
+```
 Create a model folder in the sub directory ``` src ``` of our project folder
 
-```php
-mkdir src/models
-touch src/models/user.js
-```
+    mkdir src/models
+    touch src/models/users.js
 
-models/user.js
+**models/user.js**
 ```php
-const { DataTypes } = require("sequelize");
-const sequelize = require("../database");
+const mongoose  = require('mongoose')
+const validator = require('validator')
+const jwt       = require('jsonwebtoken')
+const UserSchema  = new mongoose.Schema({
+    username:{
+        type: String,
+        required: true,
+        trim: true
+    },
+    role:{
+        type: String
 
-const User = sequelize.define("User", {
-    username: {
-        type: DataTypes.STRING,
-        allowNull: false,
     },
-    role: {
-        type: DataTypes.STRING,
-        allowNull: false,
+    password:{
+        type:String,
+        required:true,
+        trim:true,
+        minlength: 6,
+        validate(value){
+            if(validator.isEmpty(value)){
+                throw new Error('Please enter your password!')
+            }else if(validator.equals(value.toLowerCase(),"password")){
+                throw new Error('Password is invalid!')
+            }else if(validator.contains(value.toLowerCase(), "password")){
+                throw new Error('Password should not contain password!')
+            }
+        }
     },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: false,
+    token:{
+        type:String
     },
-    token: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
+    createdAt:{
+        type: Date,
+        default: Date.now
+    }
 });
 
+const User = mongoose.model('users', UserSchema);
+
 module.exports = User;
+
 ```
 
-We will connect it with our database by providing the env DB_NAME with database, DB_USER with username and DB_PASS with password.
+
+add ```require("dotenv").config();```, ```require("./database/index");```, ```require("./models/users");``` into ```src/app.js```.
+
+**src/app.js**
+```php
+const express = require("express");
+const morgan = require("morgan");
+const helmet = require("helmet");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+require("dotenv").config();
+require("./database/index");
+require("./models/users");
+
+const app = express();
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+app.use(morgan("dev"));
+app.use(helmet());
+app.use(cors());
+app.use(express.json());
+
+app.get("/", (req, res) => {
+    res.json({
+        message: "Hellow",
+    });
+});
+
+module.exports = app;
+```
+Set up the index.js with below code
+
+src/index.js
+```php
+const app = require("./app");
+
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+    console.log(`apps running in port :${port}`);
+});
+```
+
+Set up the middleware.js with below code
+
+src/middleware.js
+```php
+function notFound(req, res, next) {
+    res.status(404);
+    const error = new Error(`🔍 - Not Found - ${req.originalUrl}`);
+    next(error);
+}
+
+/* eslint-disable no-unused-vars */
+function errorHandler(err, req, res, next) {
+    /* eslint-enable no-unused-vars */
+    const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
+    res.status(statusCode);
+    res.json({
+        message: err.message,
+        stack: process.env.NODE_ENV === 'production' ? '🥞' : err.stack
+    });
+}
+
+module.exports = {
+    notFound,
+    errorHandler
+};
+```
+
+We will first load out mongoose package and then access the methods/function, we will connect it with our database by providing the URL string with username and password.
 
 From your root folder, kindly run ``` npm run dev ```, and you will see our application up and running with our database connected
 
 ```php
-[nodemon] to restart at any time, enter `rs`
 [nodemon] watching path(s): *.*
 [nodemon] watching extensions: js,mjs,json
 [nodemon] starting `node src/index.js`
 apps running in port :5000
-Executing (default): SELECT 1+1 AS result
-Executing (default): SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = 'Users' AND TABLE_SCHEMA = 'express_login_register_api'
-Connection has been established successfully.
+Database connected!
 
 ```
 
-Create a api folder and route register, login, and verify token in sub directory ``` src/api ``` of our project folder
+Create an api folder and route register, login, and verify token in sub directory ``` src/api ``` of our project folder
 
     mkdir src/api
     touch src/api/index.js src/api/register.js src/api/login.js src/api/verifyToken.js
@@ -208,6 +281,7 @@ api/register.js
 ```php
 const express = require("express");
 const User = require("../models/users");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
@@ -218,22 +292,23 @@ router.post("/register", async (req, res) => {
         const {username, role} = req.body;
 
         // Validate if user exist in our database
-        const oldUser = await User.findOne({$or: [{'role': role}, {'username': username}]});
+        const oldUser = await User.findOne({'username': username});
 
         if (oldUser) {
           return res.status(409).send("User Already Exist. Please Login");
         }
 
-        // Create password in our database
+        // Create user in our database
         var crypto = require("crypto");
         var password = crypto.randomBytes(3).toString('hex')
         const user = new User({
           username,
           role,
-          password
+          password,
+          token : ''
         });
 
-        const savedUser = await user.save();
+        await user.save();
 
         // return new user
         res.status(201).json({ username: user.username, role: user.role, password: user.password});
@@ -282,34 +357,35 @@ router.post("/login", async (req, res) => {
         const { username, password } = req.body;
 
         // Validate if user exist in our database
-        const user = await User.findOne({ where: { username } });
+        const user = await User.findOne({ 'username': username });
 
-        if (user && user.password == password) {
+        if (user && user.password === password) {
 
             // Create token
             const jwtToken = jwt.sign(
-                { id: user.id, username: user.username },
+                { _id: user._id, username: user.username },
                 process.env.JWT_SECRET,
                 {
                     expiresIn: "2m",
                 }
             );
 
-            // save user token
-            user.update({
-                token : jwtToken
-            }, {
-                where : {
-                    id: user.id /*like this*/  }}).then(function (data) {
-                if (data) {
-                    res.send(data)
-                } else {
-                    res.status(400).send('Error')
+            const id = user._id
+            //update Token user
+            let updatedUser = {}
+            updatedUser.token = jwtToken
+
+            User.findByIdAndUpdate(id, updatedUser, function(err, updatedData){
+                if(err){
+                    // console.log(err)
+                }
+                else {
+                    console.log(updatedData)
                 }
             })
 
-            // user
-            res.status(201).json({ id: user.id, username: user.username, token: user.token});
+            // output
+            res.status(201).json({ _id: user._id, username: user.username, token: jwtToken});
         }
         res.status(400).send("Invalid Credentials");
     } catch (err) {
@@ -317,7 +393,6 @@ router.post("/login", async (req, res) => {
     }
 
 });
-
 
 module.exports = router;
 ```
@@ -346,22 +421,27 @@ Add the following snippet inside.
     mkdir middleware
     touch middleware/auth.js
 
-
 auth.js
 ```php
 const jwt = require("jsonwebtoken");
+const User = require("../src/models/users");
 
-function isAuthenticated(req, res, next) {
+async function isAuthenticated(req, res, next) {
     try {
         let token = req.get("authorization");
-        if (!token){
-            return res.status(404).json({ is_valid: false, msg: "Token not found" });
-         }
+        if (!token) {
+            return res.status(404).json({is_valid: false, msg: "Token not found"});
+        }
         token = token.split(" ")[1];
         const user = jwt.verify(token, process.env.JWT_SECRET);
-        req.username = user.username; next();
+
+        let decoded = jwt.decode(token, { complete: true });
+
+        req.expiredAt = new Date(decoded.payload.exp * 1000)
+        req.username = user.username
+        next()
     } catch (error) {
-        return res.status(401).json({ is_valid: false, msg: error.message });
+        return res.status(401).json({is_valid: false, msg: error.message});
     }
 }
 
@@ -380,11 +460,21 @@ const router = express.Router();
 
 
 router.get("/verify-token", isAuthenticated, (req, res) => {
-    res.json({ is_valid: true, username: req.username });
+
+    res.json({ is_valid: true, username: req.username, expiredAt: req.expiredAt });
 });
 
 
 module.exports = router;
+```
+Output of this route is is_valid(string) username (string), expiredAt (date).
+
+```
+{
+    "is_valid": true,
+    "username": "mambaun1",
+    "expiredAt": "2022-06-25T06:06:01.000Z"
+}
 ```
 
 **Javascript Promises to Async/Await**
@@ -424,7 +514,7 @@ HyperText Transfer Protocol (HTTP) is a stateless protocol, which means that the
 
 **DELETE**: This will delete the resource
 
-**Create /index for Routing refers to the application endpoints.**
+**Create ```api/index``` for Routing refers to the application endpoints.**
 
 api/index.js
 ```php
@@ -444,21 +534,12 @@ module.exports = router;
 
 Routing refers to the application endpoints which will pass the request to the server and server will send back the response to the client via those routes. We will be using an express router in our tutorial.
 
-Create an index.js file into the sub directory ``` src ``` of our project folder “login-register-api-express”:
-    
-    mkdir src
-    touch src/index.js src/app.js src/midleware.js
+Continue an index.js file into the sub directory ``` src ``` of our project folder “login-register-api-express”.
 
-Import the Login, Register and Verify Token in directori ```src/api/index.js``` to our main file — app.js
+Import the Login, Register and Verify Token routing in directori ```src/api/index.js``` to our main file — app.js
 This is how our final app.js file will look like.
 
 src/app.js
-```php
-const api = require("./api");
-
-const app = express();
-```
-
 ```php
 const express = require("express");
 const morgan = require("morgan");
@@ -466,8 +547,7 @@ const helmet = require("helmet");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 require("dotenv").config();
-require("./auth/passport");
-
+require("./database/index");
 require("./models/users");
 
 const middlewares = require("./middlewares");
@@ -496,42 +576,44 @@ app.use(middlewares.errorHandler);
 
 module.exports = app;
 ```
+#Deploying our application on Heroku
 
-Set up the index.js with below code
+Creating the production environment for our application
 
-src/index.js
-```php
-const app = require("./app");
+Install ```env-cmd```: This makes all our environment variable available all over to our scripts
 
-const port = process.env.PORT || 5000;
-app.listen(port, () => {
-    console.log(`apps running in port :${port}`);
-});
+    npm install env --save-dev
+
+Create a config folder in the root of our project
+
+    mkdir config
+    touch config/env.dev
+
+The env.dev file will contain all our environment variables
+
+    MONGO_URI=yoururlstring
+    JWT_SECRET=yourtopsecretcode
+    PORT=portonwhichtheappwillrun
+
+
+In package.json, make below changes script
+
+```
+"scripts": {
+"dev": "env-cmd ./config/dev.env nodemon src/index.js",
+"start": "node src/index.js"
+}
 ```
 
-Set up the middleware.js with below code
+Replace your mongo string url with process.env.MONGODB_URL in the ```src/database/index.js``` file& your jwt-secret with process.env.JWT_SECRET in the ```middleware/auth.js``` & ```src/login.js```
 
-src/middleware.js
-```php
-function notFound(req, res, next) {
-    res.status(404);
-    const error = new Error(`🔍 - Not Found - ${req.originalUrl}`);
-    next(error);
-}
+    Signup for your Heroku account.
+    Into the root folder of our application “nodejs_auth”, run below commands
 
-/* eslint-disable no-unused-vars */
-function errorHandler(err, req, res, next) {
-    /* eslint-enable no-unused-vars */
-    const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
-    res.status(statusCode);
-    res.json({
-        message: err.message,
-        stack: process.env.NODE_ENV === 'production' ? '🥞' : err.stack
-    });
-}
-
-module.exports = {
-    notFound,
-    errorHandler
-};
-```
+````
+    heroku create
+    
+    heroku config:set PORT=5000 MONGO_URI=mongodburlstring JWT_SECRET=yoursecret
+    
+    git push heroku master
+````

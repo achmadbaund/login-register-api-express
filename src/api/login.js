@@ -17,22 +17,29 @@ router.post("/login", async (req, res) => {
 
             // Create token
             const jwtToken = jwt.sign(
-                { id: user.id, username: user.username },
+                { _id: user._id, username: user.username },
                 process.env.JWT_SECRET,
                 {
                     expiresIn: "2m",
                 }
             );
 
-            // save user token
-            data = User.findOne({id: user.id})
-            user.update({token : jwtToken},
-                (err,user)=>{
-                    res.status(400).send('Error');
-                });
+            const id = user._id
+            //update Token user
+            let updatedUser = {}
+            updatedUser.token = jwtToken
+
+            User.findByIdAndUpdate(id, updatedUser, function(err, updatedData){
+                if(err){
+                    // console.log(err)
+                }
+                else {
+                    console.log(updatedData)
+                }
+            })
 
             // output
-            res.status(201).json({ id: user.id, username: user.username, token: user.token});
+            res.status(201).json({ _id: user._id, username: user.username, token: jwtToken});
         }
         res.status(400).send("Invalid Credentials");
     } catch (err) {

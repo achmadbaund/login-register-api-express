@@ -1,5 +1,6 @@
 const express = require("express");
 const User = require("../models/users");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
@@ -10,11 +11,12 @@ router.post("/register", async (req, res) => {
         const {username, role} = req.body;
 
         // Validate if user exist in our database
-        const oldUser = await User.findOne({$or: [{'role': role}, {'username': username}]});
+        const oldUser = await User.findOne({'username': username});
 
         if (oldUser) {
           return res.status(409).send("User Already Exist. Please Login");
         }
+
 
         // Create user in our database
         var crypto = require("crypto");
@@ -22,10 +24,11 @@ router.post("/register", async (req, res) => {
         const user = new User({
           username,
           role,
-          password
+          password,
+          token : ''
         });
 
-        const savedUser = await user.save();
+        await user.save();
 
         // return new user
         res.status(201).json({ username: user.username, role: user.role, password: user.password});

@@ -4,8 +4,7 @@ const helmet = require("helmet");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 require("dotenv").config();
-require("./auth/passport");
-
+require("./database/index");
 require("./models/users");
 
 const middlewares = require("./middlewares");

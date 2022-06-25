@@ -1,23 +1,40 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../database");
+const mongoose  = require('mongoose')
+const validator = require('validator')
+const jwt       = require('jsonwebtoken')
+const UserSchema  = new mongoose.Schema({
+    username:{
+        type: String,
+        required: true,
+        trim: true
+    },
+    role:{
+        type: String
 
-const User = sequelize.define("User", {
-    username: {
-        type: DataTypes.STRING,
-        allowNull: false,
     },
-    role: {
-        type: DataTypes.STRING,
-        allowNull: false,
+    password:{
+        type:String,
+        required:true,
+        trim:true,
+        minlength: 6,
+        validate(value){
+            if(validator.isEmpty(value)){
+                throw new Error('Please enter your password!')
+            }else if(validator.equals(value.toLowerCase(),"password")){
+                throw new Error('Password is invalid!')
+            }else if(validator.contains(value.toLowerCase(), "password")){
+                throw new Error('Password should not contain password!')
+            }
+        }
     },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: false,
+    token:{
+        type:String
     },
-    token: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
+    createdAt:{
+        type: Date,
+        default: Date.now
+    }
 });
+
+const User = mongoose.model('users', UserSchema);
 
 module.exports = User;
